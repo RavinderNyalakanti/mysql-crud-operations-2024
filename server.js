@@ -5,7 +5,7 @@ const connection = require('./db'); // Import the connection
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = 4500;
 
 // Middleware
 app.use(bodyParser.json()); 
