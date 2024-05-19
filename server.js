@@ -1,22 +1,19 @@
 const express = require('express');
-const bodyParser = require('body-parser'); 
+const bodyParser = require('body-parser');
 const cors = require('cors');
-const connection = require('./db'); // Import the connection
+const pool = require('./db');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT||4500
+const PORT = process.env.PORT || 4500;
 
-// Middleware
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 app.use(cors());
 
-
-// Routes
 app.get('/movies', async (req, res) => {
   const query = 'SELECT * FROM movies';
   try {
-    const [results] = await connection.promise().query(query);
+    const [results] = await pool.query(query);
     res.json(results);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -29,11 +26,11 @@ app.post('/movies', async (req, res) => {
   const insertQuery = 'INSERT INTO movies (name, img, summary) VALUES (?, ?, ?)';
 
   try {
-    const [checkResults] = await connection.promise().query(checkQuery, [name]);
+    const [checkResults] = await pool.query(checkQuery, [name]);
     if (checkResults.length > 0) {
       res.status(400).json({ message: 'Movie already exists' });
     } else {
-      const [insertResults] = await connection.promise().query(insertQuery, [name, img, summary]);
+      const [insertResults] = await pool.query(insertQuery, [name, img, summary]);
       res.status(201).json({ id: insertResults.insertId, name, img, summary });
     }
   } catch (err) {
@@ -44,9 +41,9 @@ app.post('/movies', async (req, res) => {
 app.get('/movies/:id', async (req, res) => {
   const { id } = req.params;
   const query = 'SELECT * FROM movies WHERE id = ?';
-  
+
   try {
-    const [results] = await connection.promise().query(query, [id]);
+    const [results] = await pool.query(query, [id]);
     if (results.length === 0) {
       res.status(404).json({ message: 'Movie not found' });
     } else {
@@ -61,9 +58,9 @@ app.put('/movies/:id', async (req, res) => {
   const { id } = req.params;
   const { name, img, summary } = req.body;
   const query = 'UPDATE movies SET name = ?, img = ?, summary = ? WHERE id = ?';
-  
+
   try {
-    const [results] = await connection.promise().query(query, [name, img, summary, id]);
+    const [results] = await pool.query(query, [name, img, summary, id]);
     if (results.affectedRows === 0) {
       res.status(404).json({ message: 'Movie not found' });
     } else {
@@ -77,9 +74,9 @@ app.put('/movies/:id', async (req, res) => {
 app.delete('/movies/:id', async (req, res) => {
   const { id } = req.params;
   const query = 'DELETE FROM movies WHERE id = ?';
-  
+
   try {
-    const [results] = await connection.promise().query(query, [id]);
+    const [results] = await pool.query(query, [id]);
     if (results.affectedRows === 0) {
       res.status(404).json({ message: 'Movie not found' });
     } else {
